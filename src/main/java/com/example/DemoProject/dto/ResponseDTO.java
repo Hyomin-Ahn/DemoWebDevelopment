@@ -10,9 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class ResponseDTO {
-
+//오류해결..T 누락
+public class ResponseDTO<T> {
     private String error;
-    //private List<T> data;
-
+    private List<T> data;
 }

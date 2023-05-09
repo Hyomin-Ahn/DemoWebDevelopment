@@ -88,7 +88,6 @@ public class TodoController {
 
         //3. entity 업데이트
         List<TodoEntity> entities = service.update(entity);
-
         //4. 자바 스트림을 이용해 리턴된 엔티티 리스트 TodoDTO 리스트로 변환
         List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
 

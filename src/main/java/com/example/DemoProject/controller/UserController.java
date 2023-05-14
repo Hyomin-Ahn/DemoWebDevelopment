@@ -1,0 +1,50 @@
+package com.example.DemoProject.controller;
+
+import com.example.DemoProject.dto.ResponseDTO;
+import com.example.DemoProject.dto.UserDTO;
+import com.example.DemoProject.model.UserEntity;
+import com.example.DemoProject.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+@RequestMapping("/auth")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO){
+        try{
+            if(userDTO == null || userDTO.getPassword()==null){
+                throw new RuntimeException("Invalid Password value.");
+            }
+            //요청을 이용해 저장할 유저 만들기
+            UserEntity user = UserEntity.builder()
+                    .username(userDTO.getUsername())
+                    .password(userDTO.getPassword())
+                    .build();
+            //서비스를 이용해 리포지터리에 유저 저장
+            UserEntity registerUser = userService.create(user);
+            UserDTO responseUserDTO = UserDTO.builder()
+                    .id(registerUser.getId())
+                    .username(registerUser.getUsername())
+                    .build();
+            return ResponseEntity.ok().body(responseUserDTO);
+
+        }catch (Exception e){
+            //유저 정보는 하나, 리스트로 만들어야 하는 ResponseDTO 사용하지 않고 UserDTO 리턴
+            ResponseDTO responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
+            return ResponseEntity
+                    .badRequest()
+                    .body(responseDTO);
+        }
+    }
+}

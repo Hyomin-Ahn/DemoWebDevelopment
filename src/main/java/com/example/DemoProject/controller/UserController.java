@@ -3,6 +3,7 @@ package com.example.DemoProject.controller;
 import com.example.DemoProject.dto.ResponseDTO;
 import com.example.DemoProject.dto.UserDTO;
 import com.example.DemoProject.model.UserEntity;
+import com.example.DemoProject.security.TokenProvider;
 import com.example.DemoProject.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TokenProvider tokenProvider;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO){
@@ -42,6 +46,33 @@ public class UserController {
         }catch (Exception e){
             //유저 정보는 하나, 리스트로 만들어야 하는 ResponseDTO 사용하지 않고 UserDTO 리턴
             ResponseDTO responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
+            return ResponseEntity
+                    .badRequest()
+                    .body(responseDTO);
+        }
+    }
+
+    @PostMapping("/signin")
+    public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO){
+        UserEntity user = userService.getByCredentials(
+                userDTO.getUsername(),
+                userDTO.getPassword()
+        );
+
+        if(user != null){
+            //generate token
+            final String token = tokenProvider.create(user);
+            final UserDTO responseUserDTO = UserDTO.builder()
+                    .username(user.getUsername())
+                    .id(user.getId())
+                    .token(token)
+                    .build();
+
+            return ResponseEntity.ok().body(responseUserDTO);
+        }else{
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .error("Login failed.")
+                    .build();
             return ResponseEntity
                     .badRequest()
                     .body(responseDTO);
